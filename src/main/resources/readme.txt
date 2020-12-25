@@ -1,0 +1,2 @@
+在src/main/resources目录中存放的是Java程序读取的classpath资源文件，
+除了JDBC的配置文件jdbc.properties外，我们又新增了一个logback.xml，这是Logback的默认查找的配置文件。
