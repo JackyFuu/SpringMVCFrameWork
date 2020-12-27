@@ -8,6 +8,11 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * @author jacky
+ * @time 2020-12-26 23:10
+ * @discription 用户实体类
+ */
 public class User {
 
 	private Long id;

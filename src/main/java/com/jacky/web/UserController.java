@@ -18,7 +18,20 @@ import java.util.Map;
 /**
  * @author jacky
  * @time 2020-12-25 23:10
- * @discription
+ * @discription Controller类
+ *                  1、@GetMapping GET请求
+ *                  2、@PostMapping POST请求
+ *                  3、@RequestParam 需要接收的HTTP参数
+ *                      如果方法参数需要传入HttpServletRequest、HttpServletResponse或者HttpSession，
+ *                      直接添加这个类型的参数即可，Spring MVC会自动按类型传入。
+ *                  4、返回的ModelAndView通常包含View的路径和一个Map作为Model，但也可以没有Model
+ *                  5、返回重定向时既可以写new ModelAndView("redirect:/signin")，也可以直接返回String
+ *                  6、如果在方法内部直接操作HttpServletResponse发送响应，返回null表示无需进一步处理。
+ *                  7、对URL进行分组，每组对应一个Controller是一种很好的组织形式，
+ *                      并可以在Controller的class定义出添加URL前缀
+ *
+ *
+ *
  */
 
 @Controller

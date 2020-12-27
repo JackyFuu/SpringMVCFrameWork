@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 /**
  * @author jacky
  * @time 2020-12-25 22:27
- * @discription 数据库初始化
+ * @discription 数据库初始化类
  */
 
 @Component
