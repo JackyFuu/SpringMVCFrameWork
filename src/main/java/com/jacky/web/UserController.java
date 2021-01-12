@@ -29,9 +29,6 @@ import java.util.Map;
  *                  6、如果在方法内部直接操作HttpServletResponse发送响应，返回null表示无需进一步处理。
  *                  7、对URL进行分组，每组对应一个Controller是一种很好的组织形式，
  *                      并可以在Controller的class定义出添加URL前缀
- *
- *
- *
  */
 
 @Controller

@@ -2,6 +2,7 @@ package com.jacky.service;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 
 import com.jacky.entity.User;
 import org.slf4j.Logger;
@@ -75,5 +76,9 @@ public class UserService {
 		if (1 != jdbcTemplate.update("UPDATE user SET name = ? WHERE id=?", user.getName(), user.getId())) {
 			throw new RuntimeException("User not found by id");
 		}
+	}
+
+	public List<User> getUsers() {
+		return jdbcTemplate.query("SELECT * FROM users", userRowMapper);
 	}
 }

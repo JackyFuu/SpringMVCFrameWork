@@ -1,5 +1,8 @@
 package com.jacky.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -62,6 +65,10 @@ public class User {
 		this.email = email;
 	}
 
+	//@JsonIgnore  //避免输出password属性,在转换为JSON输出是忽略该属性
+	//如果要允许输入password，但不允许输出password，即在JSON序列化和反序列化时，允许写属性，禁用读属性，可以更精细地控制如下：
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	//同样的，可以使用@JsonProperty(access = Access.READ_ONLY)允许输出，不允许输入。
 	public String getPassword() {
 		return password;
 	}
