@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +41,36 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    /**
+     * 在Controller中，Spring MVC还允许定义基于@ExceptionHandler注解的异常处理方法。
+     * 异常处理方法没有固定的方法签名，可以传入Exception、HttpServletRequest等，返回值可以是void，也可以是ModelAndView，
+     * 下述代码通过@ExceptionHandler(RuntimeException.class)表示当发生RuntimeException的时候，就自动调用此方法处理。
+     *
+     * 可以编写多个错误处理方法，每个方法针对特定的异常。例如，处理LoginException使得页面可以自动跳转到登录页。
+     *
+     * 使用ExceptionHandler时，要注意它仅作用于当前的Controller，
+     * 即ControllerA中定义的一个ExceptionHandler方法对ControllerB不起作用。如果我们有很多Controller，
+     * 每个Controller都需要处理一些通用的异常，例如LoginException，思考一下应该怎么避免重复代码？
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ModelAndView handleUnknowException(Exception ex){
+        Map<String, Object> model = new HashMap<>();
+        model.put("error", ex.getClass().getSimpleName());
+        model.put("message", ex.getMessage());
+        return new ModelAndView("500.html", model);
+    }
+
+    /**
+     * 测试基于@ExceptionHandler注解的异常处理方法。
+     * @return
+     */
+    @GetMapping("/testExceptionHandler")
+    public ModelAndView testExceptionHandler() {
+        throw new RuntimeException();
+    }
 
     @GetMapping("/")
     public ModelAndView index(HttpSession session) {
