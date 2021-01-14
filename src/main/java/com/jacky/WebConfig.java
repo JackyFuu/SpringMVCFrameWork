@@ -24,10 +24,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
@@ -78,10 +75,29 @@ public class WebConfig {
                     registry.addInterceptor(interceptor);
                 }
             }
-
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 registry.addResourceHandler("/static/**").addResourceLocations("/static/");
+            }
+
+            /**
+             * 定义一个全局CORS配置，全称Cross-Origin Resource Sharing，是HTML5规范定义的如何跨域访问资源。
+             * 如果A站的JavaScript访问B站API的时候，B站能够返回响应头Access-Control-Allow-Origin: http://a.com，
+             *  那么，浏览器就允许A站的JavaScript访问B站的API。
+             *
+             *  注意到跨域访问能否成功，取决于B站是否愿意给A站返回一个正确的Access-Control-Allow-Origin响应头，所以决定权永远在提供API的服务方手中。
+             *
+             *  还可使用Spring提供的CorsFilter。不过，推荐使用上述方式。
+             *
+             *  也可以使用@CrossOrigin注解，详见ApiController类
+             * @param registry
+             */
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://local.liaoxuefeng.com:8080")
+                        .allowedMethods("GET", "POST")
+                        .maxAge(3600);
             }
         };
     }

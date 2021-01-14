@@ -28,6 +28,14 @@ import java.util.Map;
 //类中的方法自动变成API接口方法
 @RestController
 @RequestMapping("/api")
+/**
+ * CORS可以控制指定域的页面JavaScript能否访问API。
+ * 使用@CrossOrigin注解，可以在@RestController的class级别或方法级别定义一个@CrossOrigin
+ *  上述定义在ApiController处的@CrossOrigin指定了只允许来自local.liaoxuefeng.com跨域访问，
+ * 允许多个域访问需要写成数组形式，例如origins = {"http://a.com", "https://www.b.com"})。如果要允许任何域访问，写成origins = "*"即可。
+ * 如果有多个REST Controller都需要使用CORS，那么，每个Controller都必须标注@CrossOrigin注解。
+ */
+@CrossOrigin(origins = "http://local.liaoxuefeng.com:8080")
 public class ApiController {
 
     @PostMapping(value = "/rest",
