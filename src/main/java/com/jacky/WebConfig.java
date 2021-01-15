@@ -1,9 +1,14 @@
 package com.jacky;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
+import com.mitchellbosecke.pebble.extension.AbstractExtension;
+import com.mitchellbosecke.pebble.extension.Extension;
+import com.mitchellbosecke.pebble.extension.Function;
 import com.mitchellbosecke.pebble.loader.ServletLoader;
 import com.mitchellbosecke.pebble.spring.extension.SpringExtension;
 import com.mitchellbosecke.pebble.spring.servlet.PebbleViewResolver;
+import com.mitchellbosecke.pebble.template.EvaluationContext;
+import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -13,22 +18,28 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 import java.io.File;
+import java.util.*;
 
 /**
  * @author jacky
@@ -69,6 +80,10 @@ public class WebConfig {
     @Bean
     WebMvcConfigurer createWebMvcConfigurer(@Autowired HandlerInterceptor[] interceptors) {
         return new WebMvcConfigurer() {
+            /**
+             * 注册Interceptor
+             * @param registry
+             */
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 for (HandlerInterceptor interceptor : interceptors){
@@ -102,6 +117,42 @@ public class WebConfig {
         };
     }
 
+    /**
+     * Spring MVC通过LocaleResolver来自动从HttpServletRequest中获取Locale。有多种LocaleResolver的实现类，其中最常用的是CookieLocaleResolver。
+     *
+     * CookieLocaleResolver从HttpServletRequest中获取Locale时，
+     * 1）首先根据一个特定的Cookie判断是否指定了Locale，
+     * 2）如果没有，就从HTTP头获取，
+     * 3）如果还没有，就返回默认的Locale。
+     * @return
+     */
+    @Bean
+    LocaleResolver createLocaleResolver(){
+        CookieLocaleResolver cookieLocaleResolver = new CookieLocaleResolver();
+        cookieLocaleResolver.setDefaultLocale(Locale.ENGLISH);
+        cookieLocaleResolver.setDefaultTimeZone(TimeZone.getDefault());
+        return cookieLocaleResolver;
+    }
+
+    /**
+     * 创建一个Spring提供的MessageSource实例，它自动读取所有的.properties文件，并提供一个统一接口来实现“翻译”：
+     *
+     * ResourceBundleMessageSource会自动根据主文件名自动把所有相关语言的资源文件都读进来。
+     *
+     * 再注意到Spring容器会创建不只一个MessageSource实例，
+     * 我们自己创建的这个MessageSource是专门给页面国际化使用的，因此命名为i18n，不会与其它MessageSource实例冲突。
+     * @return
+     */
+    @Bean("i18n")
+    MessageSource createMessageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        // 指定文件是UTF-8编码
+        messageSource.setDefaultEncoding("UTF-8");
+        // 指定主文件名
+        messageSource.setBasename("messages");
+        return messageSource;
+    }
+
     // -- pebble view configuration -------------------------------------------
 
     /**
@@ -112,14 +163,16 @@ public class WebConfig {
      * @return ViewResolver
      */
     @Bean
-    ViewResolver createViewResolver(@Autowired ServletContext servletContext) {
+    ViewResolver createViewResolver(@Autowired ServletContext servletContext, @Autowired @Qualifier("i18n") MessageSource messageSource) {
         PebbleEngine engine = new PebbleEngine.Builder().autoEscaping(true)
+                //设置是否自动执行转义。
+                .autoEscaping(true)
                 // cache:
                 .cacheActive(false)
                 // loader:
                 .loader(new ServletLoader(servletContext))
-                // extension:
-                .extension(new SpringExtension())
+                // extension:(添加国际化函数扩展)
+                .extension(createExtension(messageSource))
                 // build:
                 .build();
         PebbleViewResolver viewResolver = new PebbleViewResolver();
@@ -129,6 +182,43 @@ public class WebConfig {
         return viewResolver;
     }
 
+    /**
+     * 使用View时，要根据每个特定的View引擎定制国际化函数。在Pebble中，我们可以封装一个国际化函数，名称就是下划线_，改造一下创建ViewResolver的代码：
+     * @param messageSource
+     * @return
+     */
+    private Extension createExtension(MessageSource messageSource) {
+        return new AbstractExtension() {
+            @Override
+            public Map<String, Function> getFunctions() {
+                Map<String, Function> functionMap = new HashMap<>();
+                functionMap.put("_", new Function() {
+                    public Object execute(Map<String, Object> args, PebbleTemplate self, EvaluationContext context, int lineNumber) {
+                        String key = (String) args.get("0");
+                        List<Object> arguments = this.extractArguments(args);
+                        Locale locale = (Locale) context.getVariable("__locale__");
+                        return messageSource.getMessage(key, arguments.toArray(), "???" + key + "???", locale);
+                    }
+
+                    private List<Object> extractArguments(Map<String, Object> args) {
+                        int i = 1;
+                        List<Object> arguments = new ArrayList<>();
+                        while (args.containsKey(String.valueOf(i))) {
+                            Object param = args.get(String.valueOf(i));
+                            arguments.add(param);
+                            i++;
+                        }
+                        return arguments;
+                    }
+
+                    public List<String> getArgumentNames() {
+                        return null;
+                    }
+                });
+                return functionMap;
+            }
+        };
+    }
     // -- jdbc configuration --------------------------------------------------
 
     @Value("${jdbc.url}")
