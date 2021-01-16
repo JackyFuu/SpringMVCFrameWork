@@ -19,7 +19,7 @@ import java.util.Locale;
  *                  我们通过编写一个MvcInterceptor，把相关资源注入到ModelAndView中：
  */
 
-@Component
+//@Component
 public class MvcInterceptor implements HandlerInterceptor {
 
     @Autowired

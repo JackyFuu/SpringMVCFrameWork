@@ -1,6 +1,7 @@
 package com.jacky.web;
 
 import com.jacky.entity.User;
+import com.jacky.service.MailService;
 import com.jacky.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,9 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    MailService mailService;
 
     /**
      * 在Controller中，Spring MVC还允许定义基于@ExceptionHandler注解的异常处理方法。
@@ -93,6 +97,7 @@ public class UserController {
         try {
             User user = userService.register(email, password, name);
             logger.info("user registered: {}", user.getEmail());
+            mailService.setRegistrationMail(user);
         } catch (RuntimeException e) {
             Map<String, Object> model = new HashMap<>();
             model.put("email", email);

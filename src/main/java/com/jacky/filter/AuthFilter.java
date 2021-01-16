@@ -39,7 +39,7 @@ import java.util.Base64;
  *               当一个Filter作为Spring容器管理的Bean存在时，可以通过DelegatingFilterProxy间接地引用它并使其生效。
  */
 
-@Component
+//@Component
 public class AuthFilter implements Filter {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
@@ -72,5 +72,15 @@ public class AuthFilter implements Filter {
                 logger.info("user {} login by authorization header ok.", email);
             }
         }
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void destroy() {
+
     }
 }

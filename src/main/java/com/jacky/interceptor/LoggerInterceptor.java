@@ -29,8 +29,8 @@ import java.time.LocalDateTime;
  *              最后，要让拦截器生效，我们在WebMvcConfigurer中注册所有的Interceptor：
  */
 
-@Order(1)
-@Component
+//@Order(1)
+//@Component
 public class LoggerInterceptor implements HandlerInterceptor {
 
     final Logger logger = LoggerFactory.getLogger(getClass());

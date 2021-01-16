@@ -1,5 +1,9 @@
 package com.jacky;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jacky.webSocket.ChatHandler;
+import com.jacky.webSocket.ChatHandshakeInterceptor;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.extension.AbstractExtension;
 import com.mitchellbosecke.pebble.extension.Extension;
@@ -28,6 +32,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -35,6 +41,9 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
@@ -52,9 +61,10 @@ import java.util.*;
  */
 @Configuration
 @ComponentScan
+//@EnableWebSocket
 @EnableWebMvc  //启用Spring MVC
 @EnableTransactionManagement
-@PropertySource("classpath:/jdbc.properties")
+@PropertySource({"classpath:/jdbc.properties", "classpath:/smtp.properties"})
 public class WebConfig {
 
     public static void main(String[] args) throws Exception{
@@ -118,6 +128,33 @@ public class WebConfig {
     }
 
     /**
+     * 加入Spring WEB对WebSocket的配置：
+     * 此实例在内部通过WebSocketHandlerRegistry注册能处理WebSocket的WebSocketHandler，
+     * 以及可选的WebSocket拦截器HandshakeInterceptor
+     * @param chatHandler
+     * @param chatInterceptor
+     * @return
+     */
+    @Bean
+    WebSocketConfigurer createWebSocketConfigurer(@Autowired ChatHandler chatHandler,
+                                                  @Autowired ChatHandshakeInterceptor chatInterceptor) {
+        return new WebSocketConfigurer() {
+            @Override
+            public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+                // 把URL与指定的WebSocketHandler关联，可关联多个:
+                registry.addHandler(chatHandler, "/chat").addInterceptors(chatInterceptor);
+            }
+        };
+    }
+
+    @Bean
+    ObjectMapper createObjectMapper() {
+        ObjectMapper om = new ObjectMapper();
+        om.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return om;
+    }
+
+    /**
      * Spring MVC通过LocaleResolver来自动从HttpServletRequest中获取Locale。有多种LocaleResolver的实现类，其中最常用的是CookieLocaleResolver。
      *
      * CookieLocaleResolver从HttpServletRequest中获取Locale时，
@@ -173,6 +210,7 @@ public class WebConfig {
                 .loader(new ServletLoader(servletContext))
                 // extension:(添加国际化函数扩展)
                 .extension(createExtension(messageSource))
+                //.extension(new SpringExtension())
                 // build:
                 .build();
         PebbleViewResolver viewResolver = new PebbleViewResolver();
@@ -247,6 +285,36 @@ public class WebConfig {
         return new JdbcTemplate(dataSource);
     }
 
+    // -- javamail configuration ----------------------------------------------
+    @Bean
+    JavaMailSender createJavaMailSender(
+            // properties:
+            @Value("${smtp.host}") String host,
+            @Value("${smtp.port}") int port,
+            @Value("${smtp.auth}") String auth,
+            @Value("${smtp.username}") String username,
+            @Value("${smtp.password}") String password,
+            @Value("${smtp.debug:true}") String debug){
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(host);
+        mailSender.setPort(port);
+
+        mailSender.setUsername(username);
+        mailSender.setPassword(password);
+
+        Properties properties = mailSender.getJavaMailProperties();
+        properties.put("mail.transport.protocol", "smtp");
+        properties.put("mail.smtp.auth", auth);
+        if (port == 587){
+            properties.put("mail.smtp.starttls.enable", "true");
+        }
+        if (port == 465){
+            properties.put("mail.smtp.socketFactory.port", "465");
+            properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        }
+        properties.put("mail.debug", debug);
+        return mailSender;
+    }
     @Bean
     PlatformTransactionManager createTxManager(@Autowired DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);

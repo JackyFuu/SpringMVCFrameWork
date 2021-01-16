@@ -25,8 +25,8 @@ import java.util.Base64;
  *              注：对Interceptor的介绍，在LoggerInterceptor中体现。
  */
 
-@Order(2)
-@Component
+//@Order(2)
+//@Component
 public class AuthInterceptor implements HandlerInterceptor {
 
     final Logger logger = LoggerFactory.getLogger(getClass());
