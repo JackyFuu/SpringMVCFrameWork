@@ -16,11 +16,14 @@ import com.mitchellbosecke.pebble.template.PebbleTemplate;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
 import org.apache.catalina.Context;
 import org.apache.catalina.WebResourceRoot;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +35,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -45,6 +52,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
+import javax.jms.ConnectionFactory;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 import java.io.File;
@@ -62,10 +70,14 @@ import java.util.*;
 @Configuration
 @ComponentScan
 //@EnableWebSocket
+@EnableJms //Java Message Service
 @EnableWebMvc  //启用Spring MVC
+@EnableScheduling //启用Scheduler
 @EnableTransactionManagement
-@PropertySource({"classpath:/jdbc.properties", "classpath:/smtp.properties"})
+@PropertySource({"classpath:/jdbc.properties", "classpath:/smtp.properties", "classpath:/jms.properties"})
 public class WebConfig {
+
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static void main(String[] args) throws Exception{
         Tomcat tomcat = new Tomcat();
@@ -319,4 +331,49 @@ public class WebConfig {
     PlatformTransactionManager createTxManager(@Autowired DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
+
+    // -- jms configuration ---------------------------------------------------
+
+    /**
+     * 连接消息服务器的连接池
+     * 因为我们使用的消息服务器是ActiveMQ Artemis，所以ConnectionFactory的实现类就是消息服务器提供的ActiveMQJMSConnectionFactory，
+     * 它需要的参数均由配置文件读取后传入，并设置了默认值。
+     * @param uri
+     * @param username
+     * @param password
+     * @return
+     */
+    @Bean
+    ConnectionFactory createJMSConnectionFactory(
+            @Value("${jms.uri:tcp://localhost:61616}") String uri,
+            @Value("${jms.username:admin}") String username,
+            @Value("${jms.password:123456}") String password) {
+        logger.info("create JMS connection factory for standalone activemq artemis server...");
+        return new ActiveMQJMSConnectionFactory(uri, username, password);
+    }
+
+    /**
+     * 我们再创建一个JmsTemplate，它是Spring提供的一个工具类，和JdbcTemplate类似，可以简化发送消息的代码：
+     * @param connectionFactory
+     * @return
+     */
+    @Bean
+    JmsTemplate createJmsTemplate(@Autowired ConnectionFactory connectionFactory) {
+        return new JmsTemplate(connectionFactory);
+    }
+
+    /**
+     * 除了必须指定Bean的名称为jmsListenerContainerFactory外，这个Bean的作用是处理和Consumer相关的Bean。
+     * @param connectionFactory
+     * @return
+     */
+    @Bean("jmsListenerContainerFactory")
+    DefaultJmsListenerContainerFactory createJmsListenerContainerFactory(
+            @Autowired ConnectionFactory connectionFactory){
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        return factory;
+    }
+
+
 }

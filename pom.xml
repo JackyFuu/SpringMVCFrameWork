@@ -28,6 +28,9 @@
     <hsqldb.version>2.5.0</hsqldb.version>
     <jackson.version>2.11.0</jackson.version>
     <javamail.version>1.6.2</javamail.version>
+    <artemis.version>2.13.0</artemis.version>
+    <jackson.version>2.11.0</jackson.version>
+    <netty.version>4.1.45.Final</netty.version>
   </properties>
 
   <dependencies>
@@ -130,6 +133,26 @@
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
       <version>${javamail.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jms</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>javax.jms-api</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-client</artifactId>
+      <version>2.13.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler-proxy</artifactId>
+      <version>4.1.45.Final</version>
     </dependency>
   </dependencies>
 

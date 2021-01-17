@@ -30,7 +30,7 @@
       <option name="IGNORE_JAVADOC_PERIOD" value="true" />
       <option name="IGNORE_DUPLICATED_THROWS" value="false" />
       <option name="IGNORE_POINT_TO_ITSELF" value="false" />
-      <option name="myAdditionalJavadocTags" value="discription,time,GetMapping和@PostMapping都支持指定输入和输出的格式。" />
+      <option name="myAdditionalJavadocTags" value="discription,time,GetMapping和@PostMapping都支持指定输入和输出的格式。,JmsListener指定了Queue的名称，因此，凡是发到此Queue的消息都会被这个onMailMessageReceived()方法处理，" />
     </inspection_tool>
   </profile>
 </component>
