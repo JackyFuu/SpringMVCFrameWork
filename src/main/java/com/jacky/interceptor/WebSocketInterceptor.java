@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
  * @discription
  */
 
-@Order(1)
-@Component
+//@Order(1)
+//@Component
 public class WebSocketInterceptor implements HandlerInterceptor {
 
     final Logger logger = LoggerFactory.getLogger(getClass());

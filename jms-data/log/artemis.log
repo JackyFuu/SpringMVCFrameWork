@@ -35,3 +35,14 @@
 2021-01-17 20:34:55,722 INFO  [io.hawt.web.auth.LoginServlet] Hawtio login is using 1800 sec. HttpSession timeout
 2021-01-17 20:34:56,941 INFO  [io.hawt.web.auth.keycloak.KeycloakServlet] Keycloak integration is disabled
 2021-01-17 20:35:11,616 INFO  [io.hawt.web.auth.LoginServlet] Logging in user: admin
+2021-01-17 21:05:34,519 INFO  [io.hawt.web.auth.SessionExpiryFilter] Expiring session due to inactivity
+2021-01-17 22:18:46,151 WARN  [org.apache.activemq.artemis.core.client] AMQ212037: Connection failure to /127.0.0.1:4285 has been detected: 远程主机强迫关闭了一个现有的连接。 [code=GENERIC_EXCEPTION]
+2021-01-17 22:18:46,173 WARN  [org.apache.activemq.artemis.core.server] AMQ222061: Client connection failed, clearing up resources for session 9ac410f3-58ce-11eb-9050-005056c00001
+2021-01-17 22:18:46,178 WARN  [org.apache.activemq.artemis.core.server] AMQ222107: Cleared up resources for session 9ac410f3-58ce-11eb-9050-005056c00001
+2021-01-17 22:18:46,179 WARN  [org.apache.activemq.artemis.core.server] AMQ222061: Client connection failed, clearing up resources for session 9aea3694-58ce-11eb-9050-005056c00001
+2021-01-17 22:18:46,189 WARN  [org.apache.activemq.artemis.core.server] AMQ222107: Cleared up resources for session 9aea3694-58ce-11eb-9050-005056c00001
+2021-01-17 22:24:33,880 WARN  [org.apache.activemq.artemis.core.client] AMQ212037: Connection failure to /127.0.0.1:4538 has been detected: 远程主机强迫关闭了一个现有的连接。 [code=GENERIC_EXCEPTION]
+2021-01-17 22:24:33,882 WARN  [org.apache.activemq.artemis.core.server] AMQ222061: Client connection failed, clearing up resources for session fc42de8c-58ce-11eb-bc45-005056c00001
+2021-01-17 22:24:33,884 WARN  [org.apache.activemq.artemis.core.server] AMQ222107: Cleared up resources for session fc42de8c-58ce-11eb-bc45-005056c00001
+2021-01-17 22:24:33,885 WARN  [org.apache.activemq.artemis.core.server] AMQ222061: Client connection failed, clearing up resources for session fc4883dd-58ce-11eb-bc45-005056c00001
+2021-01-17 22:24:33,890 WARN  [org.apache.activemq.artemis.core.server] AMQ222107: Cleared up resources for session fc4883dd-58ce-11eb-bc45-005056c00001

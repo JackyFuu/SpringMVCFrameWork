@@ -9,7 +9,6 @@ import com.mitchellbosecke.pebble.extension.AbstractExtension;
 import com.mitchellbosecke.pebble.extension.Extension;
 import com.mitchellbosecke.pebble.extension.Function;
 import com.mitchellbosecke.pebble.loader.ServletLoader;
-import com.mitchellbosecke.pebble.spring.extension.SpringExtension;
 import com.mitchellbosecke.pebble.spring.servlet.PebbleViewResolver;
 import com.mitchellbosecke.pebble.template.EvaluationContext;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
@@ -28,10 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -73,6 +69,7 @@ import java.util.*;
 @EnableJms //Java Message Service
 @EnableWebMvc  //启用Spring MVC
 @EnableScheduling //启用Scheduler
+@EnableMBeanExport  //自动注册MBean(Managed Bean):for JMX(Java Management Extensions)
 @EnableTransactionManagement
 @PropertySource({"classpath:/jdbc.properties", "classpath:/smtp.properties", "classpath:/jms.properties"})
 public class WebConfig {
